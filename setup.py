@@ -10,16 +10,18 @@ setup(
     package_data={
         'linux_wheels': ['dockerfiles/*'],
     },
-    install_requires=(),
+    install_requires={
+        'requests',
+    },
     entry_points={
-        'console_scripts': [
-            'lw-build-dockers = linux_wheels.build-dockers:main',
+        'console_scripts': {
+            'lw-build-dockers = linux_wheels.build_dockers:main',
             'lw-build-wheel = linux_wheels.build_wheel:main',
             'lw-launch-job = linux_wheels.launch_job:main',
-            'lw-remove-chronos-jobs = linux_wheels.build_wheel:main',
-        ],
+            'lw-remove-chronos-jobs = linux_wheels.remove_chronos_jobs:main',
+        },
     },
-    classifiers=[
+    classifiers={
         'Programming Language :: Python :: 3',
-    ],
+    },
 )
