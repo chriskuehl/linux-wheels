@@ -9,6 +9,7 @@ $(VENV): setup.py requirements.txt requirements-dev.txt
 
 .PHONY: test
 test: $(VENV)
+	$(BIN)/pre-commit install -f --install-hooks
 	$(BIN)/pre-commit run --all-files
 
 .PHONY: build-dockers
