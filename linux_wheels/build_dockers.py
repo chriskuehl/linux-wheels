@@ -103,7 +103,7 @@ RUN wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py; \
 PYTHON_DEPS_INSTALL = r'''\
 RUN for p in {pythons}; do \
         if command -v "$p"; then \
-            "$p" -m pip.__main__ install pip-custom-platform; \
+            "$p" -m pip.__main__ install pip-custom-platform requests; \
         fi; \
     done
 '''.format(pythons=' '.join(TARGET_PYTHONS))

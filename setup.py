@@ -11,6 +11,8 @@ setup(
         'linux_wheels': ['Dockerfiles/*'],
     },
     install_requires={
+        'flask',
+        'gunicorn',
         'pip-custom-platform',
         'requests',
     },
@@ -20,6 +22,7 @@ setup(
             'lw-build-wheel = linux_wheels.build_wheel:main',
             'lw-launch-job = linux_wheels.launch_job:main',
             'lw-remove-chronos-jobs = linux_wheels.remove_chronos_jobs:main',
+            'lw-upload-handler = linux_wheels.upload_handler.app:main',
         },
     },
     classifiers={

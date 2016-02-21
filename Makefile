@@ -17,6 +17,14 @@ build-dockers: $(VENV)
 	# TODO: maybe do the parallelization in build-dockers itself
 	time $(BIN)/lw-build-dockers --list | xargs -n1 -P0 time $(BIN)/lw-build-dockers
 
+.PHONY: dev
+dev: $(VENV)
+	$(BIN)/lw-upload-handler
+
+.PHONY: gunicorn
+gunicorn: $(VENV)
+	$(BIN)/gunicorn -w1 -b 0.0.0.0:6789 linux_wheels.upload_handler.app:app
+
 .PHONY: clean
 clean:
 	rm -rf $(VENV)

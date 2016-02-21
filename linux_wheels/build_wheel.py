@@ -11,7 +11,11 @@ import distutils.spawn
 import os
 import sys
 import tempfile
+from os.path import basename
+from os.path import join
 from subprocess import check_call
+
+import requests
 
 TARGET_PYTHONS = ('python2.7', 'python3.3', 'python3.4', 'python3.5')
 
@@ -20,11 +24,11 @@ def build_wheel(spec, python='python3.4'):
     """Return a wheel, returning the pathname to it."""
     tmp = tempfile.mkdtemp()
     os.chdir(tmp)
-    check_call((python, '-m', 'pip', 'install', '--download', tmp, '--', spec))
+    check_call((python, '-m', 'pip', 'install', '--no-deps', '--download', tmp, '--', spec))
 
     # TODO: what is lextab.py???
     path, = [p for p in os.listdir(tmp) if p != 'lextab.py']
-    path = os.path.join(tmp, path)
+    path = join(tmp, path)
     basename, ext = path.split('.', 1)  # splitext handles ".tar.gz" weird
 
     # splitext can't handle .tar.gz and it's not straightforward to do
@@ -32,13 +36,13 @@ def build_wheel(spec, python='python3.4'):
     if path.endswith('.whl'):
         return path
     elif path.endswith('.tar.gz'):
-        wheel_dir = os.path.join(tmp, 'wheelhouse')
+        wheel_dir = join(tmp, 'wheelhouse')
         os.mkdir(wheel_dir)
         check_call((python, '-m', 'pip_custom_platform.main', 'wheel', '-w', wheel_dir, '--', path))
 
         whl, = os.listdir(wheel_dir)
         assert whl.endswith('.whl')
-        return os.path.join(wheel_dir, whl)
+        return join(wheel_dir, whl)
     else:
         raise AssertionError('Don\'t know how to handle downloaded file: {}'.format(path))
 
@@ -74,8 +78,15 @@ def build_wheels(spec, pythons=TARGET_PYTHONS):
             print('Interpreter {} not valid, skipping...'.format(python))
 
 
-def upload_wheels(wheels):
-    pass
+def upload_wheel(path):
+    os.environ.setdefault('WHEEL_UPLOAD_URL', 'http://localhost:6789/upload')
+    resp = requests.post(
+        os.environ['WHEEL_UPLOAD_URL'],
+        files=[
+            ('file', (basename(path), open(path, 'rb'), 'application/octet-stream')),
+        ],
+    )
+    assert resp.status_code == 204, resp.status_code
 
 
 def main(argv=None):
@@ -83,7 +94,8 @@ def main(argv=None):
     wheels = list(build_wheels(spec))
     if wheels:
         print('Found these wheels: {}'.format(wheels))
-        upload_wheels(wheels)
+        for wheel in wheels:
+            upload_wheel(wheel)
     else:
         print('No wheels were built, exiting.')
 
