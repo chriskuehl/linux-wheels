@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+import os
+import sys
+import tempfile
+from subprocess import check_call
+
+def build_wheel(spec, python='python3.4'):
+    """Return a wheel, returning the pathname to it."""
+    tmp = tempfile.mkdtemp()
+    os.chdir(tmp)
+    check_call((python, '-m', 'pip', 'install', '--download', tmp, '--', spec))
+
+    path, = os.listdir(tmp)
+    path = os.path.join(tmp, path)
+    basename, ext = path.split('.', 1)  # splitext handles ".tar.gz" weird
+
+    # splitext can't handle .tar.gz and it's not straightforward to do
+    # ourselves (e.g. we might get "numpy-1.10.4.tar.gz")
+    if path.endswith('.whl'):
+        return path
+    elif path.endswith('.tar.gz'):
+        wheel_dir = os.path.join(tmp, 'wheelhouse')
+        os.mkdir(wheel_dir)
+        check_call((python, '-m', 'pip.__main__', 'wheel', '-w', wheel_dir, '--', path))
+
+        print(os.listdir(wheel_dir))
+    else:
+        raise ValueError('Don\'t know how to handle downloaded file: {}'.format(path))
+
+
+if __name__ == '__main__':
+    spec = sys.argv[1]
+    for python in ('python2.7', 'python3.4'):
+        wheel = build_wheel(spec, python=python)
+        print('Wheel built at {} ({})'.format(wheel, python))

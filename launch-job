@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+import json
+import requests
+import uuid
+from datetime import datetime
+
+
+CHRONOS = 'http://hozer-70:4400/scheduler/iso8601'
+
+
+def construct_job(job_name, image, command):
+    return {
+        'name': job_name,
+        'container': {
+            'type': 'DOCKER',
+            'image': image,
+            'network': 'BRIDGE',
+        },
+        'cpus': 0.5,
+        'mem': 512,
+        'command': command,
+        'schedule': 'R1//PT10M',
+#        'owner': 'ckuehl@ocf.berkeley.edu',
+    }
+
+
+def submit_job(job):
+    resp = requests.post(
+        CHRONOS,
+        data=json.dumps(job),
+        headers={'Content-Type': 'application/json'},
+    )
+    print(resp)
+    print(resp.headers)
+    print(resp.text)
+
+
+if __name__ == '__main__':
+    image = 'debian:jessie'
+    command = 'apt-get update && apt-get install -y lsb-release && lsb_release -a'
+
+    job_name = str(uuid.uuid4())
+    print(job_name)
+    job = construct_job(job_name, image, command)
+    submit_job(job)

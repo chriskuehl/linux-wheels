@@ -1,0 +1,8 @@
+FROM debian:jessie
+
+{APT_INSTALL}
+{DUMB_INIT_INSTALL}
+{ADD_BUILD_WHEEL}
+{ENTRYPOINT}
+
+# vim: ft=docker
