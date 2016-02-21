@@ -11,6 +11,7 @@ setup(
         'linux_wheels': ['Dockerfiles/*'],
     },
     install_requires={
+        'pip-custom-platform',
         'requests',
     },
     entry_points={

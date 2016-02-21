@@ -34,7 +34,7 @@ def build_wheel(spec, python='python3.4'):
     elif path.endswith('.tar.gz'):
         wheel_dir = os.path.join(tmp, 'wheelhouse')
         os.mkdir(wheel_dir)
-        check_call((python, '-m', 'pip.__main__', 'wheel', '-w', wheel_dir, '--', path))
+        check_call((python, '-m', 'pip_custom_platform.main', 'wheel', '-w', wheel_dir, '--', path))
 
         whl, = os.listdir(wheel_dir)
         assert whl.endswith('.whl')
@@ -43,9 +43,27 @@ def build_wheel(spec, python='python3.4'):
         raise AssertionError('Don\'t know how to handle downloaded file: {}'.format(path))
 
 
+def valid_python(python):
+    """Return whether we should consider using this Python interpreter."""
+    path = distutils.spawn.find_executable(python)
+
+    # Is it even available?
+    if not path:
+        return False
+
+    # If we're in a virtualenv, we're probably in a dev environment, and we
+    # don't want to execute system binaries which probably won't have
+    # pip-custom-platform (or other deps) available.
+    venv = os.environ.get('VIRTUAL_ENV')
+    if venv and not path.startswith(venv):
+        return False
+
+    return True
+
+
 def build_wheels(spec, pythons=TARGET_PYTHONS):
     for python in TARGET_PYTHONS:
-        if distutils.spawn.find_executable(python):
+        if valid_python(python):
             wheel = build_wheel(spec, python=python)
             if wheel:
                 print('Wheel built at {} ({})'.format(wheel, python))
@@ -53,7 +71,7 @@ def build_wheels(spec, pythons=TARGET_PYTHONS):
             else:
                 print('No wheel could be found/built for {}'.format(python))
         else:
-            print('Interpreter {} not found, skipping...'.format(python))
+            print('Interpreter {} not valid, skipping...'.format(python))
 
 
 def upload_wheels(wheels):
