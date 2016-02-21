@@ -1,10 +1,15 @@
 VENV := venv
+BIN := $(VENV)/bin
 
 .PHONY: all
 all: $(VENV)
 
 $(VENV): setup.py requirements.txt requirements-dev.txt
 	vendor/venv-update venv= -p python3.4 venv install= -r requirements.txt -r requirements-dev.txt
+
+.PHONY: test
+test: $(VENV)
+	$(BIN)/pre-commit run --all-files
 
 .PHONY: clean
 clean:

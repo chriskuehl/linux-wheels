@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import json
-import requests
 import uuid
-from datetime import datetime
+
+import requests
 
 
 CHRONOS = 'http://hozer-70:4400/scheduler/iso8601'

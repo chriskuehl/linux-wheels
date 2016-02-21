@@ -3,10 +3,11 @@ import os
 import shutil
 import sys
 import tempfile
-from build_wheel import TARGET_PYTHONS
 from contextlib import contextmanager
 from pathlib import Path
 from subprocess import check_call
+
+from build_wheel import TARGET_PYTHONS
 
 DOCKERS = {
     # Debian 8 (stable)
@@ -128,8 +129,8 @@ def build_docker(dist):
         template = f.read()
 
     apt_packages = (
-        (BASE_DEBIAN_PACKAGES | params.get('extra_apt_install', set()))
-        - params.get('apt_blacklist', set())
+        (BASE_DEBIAN_PACKAGES | params.get('extra_apt_install', set())) -
+        params.get('apt_blacklist', set())
     )
     replacements = {
         ('{DUMB_INIT_INSTALL}', DUMB_INIT_INSTALL),
@@ -153,7 +154,6 @@ def build_docker(dist):
         check_call(('docker', 'push', tag))
     finally:
         shutil.rmtree(str(tempdir))
-
 
 
 def main(argv=None):

@@ -1,26 +1,17 @@
 #!/usr/bin/env python3
-import json
 import requests
-import uuid
-from datetime import datetime
 
 
 CHRONOS = 'http://hozer-70:4400'
+
 
 def list_jobs():
     resp = requests.get(CHRONOS + '/scheduler/jobs')
     return resp.json()
 
-def submit_job(job):
-    resp = requests.post(
-        CHRONOS,
-        data=json.dumps(job),
-        headers={'Content-Type': 'application/json'},
-    )
-
 
 def remove_job(job):
-    resp = requests.delete(
+    requests.delete(
         CHRONOS + '/scheduler/job/' + job['name'],
     )
 
