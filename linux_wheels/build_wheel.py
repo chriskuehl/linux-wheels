@@ -22,9 +22,11 @@ TARGET_PYTHONS = ('python2.7', 'python3.3', 'python3.4', 'python3.5')
 
 def build_wheel(spec, python='python3.4'):
     """Return a wheel, returning the pathname to it."""
+    os.environ['PIP_NO_DEPS'] = '1'  # TODO: smell
+
     tmp = tempfile.mkdtemp()
     os.chdir(tmp)
-    check_call((python, '-m', 'pip', 'install', '--no-deps', '--download', tmp, '--', spec))
+    check_call((python, '-m', 'pip', 'install', '--download', tmp, '--', spec))
 
     # TODO: what is lextab.py???
     path, = [p for p in os.listdir(tmp) if p != 'lextab.py']
