@@ -1,4 +1,4 @@
-FROM debian:jessie
+FROM debian:stretch
 
 {APT_SOURCES_FIX}
 {APT_INSTALL}

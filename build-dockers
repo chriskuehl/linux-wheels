@@ -1,25 +1,81 @@
 #!/usr/bin/env python3
 import os
 import shutil
+import sys
 import tempfile
+from build_wheel import TARGET_PYTHONS
 from contextlib import contextmanager
 from pathlib import Path
 from subprocess import check_call
 
+DOCKERS = {
+    # Debian 8 (stable)
+    'jessie': {},
+    # Debian 9 (testing)
+    'stretch': {},
+    # Debian 7 (oldstable)
+    'wheezy': {
+        'apt_blacklist': {
+            'libpython-all-dev',
+            'libpython3-all-dev',
+            'python-wheel',
+            'python3-matplotlib',
+            'python3-wheel',
+        },
+    },
+    # Ubuntu 14.04
+    'trusty': {},
+    # Ubuntu 12.04
+    'precise': {
+        'apt_blacklist': {
+            'libpython-all-dev',
+            'libpython3-all-dev',
+            'python-wheel',
+            'python3-matplotlib',
+            'python3-pip',
+            'python3-tz',
+            'python3-wheel',
+        },
+    },
+}
+
 
 BASE_DEBIAN_PACKAGES = frozenset({
+    'build-essential',
     'ca-certificates',
     'curl',
+    'cython',
+    'gfortran',
+    'libblas-dev',
+    'liblapack-dev',
     'libpython-all-dev',
     'libpython3-all-dev',
     'python-all',
     'python-all-dev',
+    'python-docutils',
+    'python-matplotlib',
     'python-pip',
+    'python-setuptools',
+    'python-sphinx',
+    'python-tz',
+    'python-wheel',
     'python3-all',
     'python3-all-dev',
+    'python3-docutils',
+    'python3-matplotlib',
     'python3-pip',
+    'python3-setuptools',
+    'python3-sphinx',
+    'python3-tz',
+    'python3-wheel',
     'wget',
 })
+
+APT_SOURCES_FIX = '''\
+RUN sed -i 's/httpredir\.debian\.org/mirrors.ocf.berkeley.edu/g' /etc/apt/sources.list
+RUN sed -i 's/security\.debian\.org/mirrors.ocf.berkeley.edu\/debian-security/g' /etc/apt/sources.list
+RUN sed -i 's/archive\.ubuntu\.com/mirrors.ocf.berkeley.edu/g' /etc/apt/sources.list
+'''
 
 DUMB_INIT_INSTALL = '''\
 RUN wget -O /tmp/dumb-init.deb \
@@ -28,22 +84,28 @@ RUN wget -O /tmp/dumb-init.deb \
     && rm /tmp/dumb-init.deb
 '''
 
+# Try to bludgeon our way into a working pip+wheel install.
+# Currently we only use this on platforms without wheel easily available.
+PIP_INSTALL = r'''\
+RUN wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py; \
+    for p in {pythons}; do \
+        if command -v "$p"; then \
+            "$p" /tmp/get-pip.py; \
+            "$p" -m pip.__main__ install -U wheel setuptools; \
+        fi; \
+    done
+'''.format(pythons=' '.join(TARGET_PYTHONS))
+
 ADD_BUILD_WHEEL = '''\
 COPY build-wheel /usr/local/bin/build-wheel
-chmod +x /usr/local/bin/build-wheel
+RUN chmod +x /usr/local/bin/build-wheel
 '''
-
-DOCKERS = {
-    'jessie': {
-        'extra_apt_install': set(),
-    },
-}
 
 
 def build_apt_install(packages):
     return (
         'RUN apt-get update '
-        '&& apt-get install -y --no-install-recommends {} '
+        '&& DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends {} '
         '&& apt-get clean\n'
     ).format(
         ' '.join(packages)
@@ -71,9 +133,11 @@ def build_docker(dist):
     )
     replacements = {
         ('{DUMB_INIT_INSTALL}', DUMB_INIT_INSTALL),
+        ('{APT_SOURCES_FIX}', APT_SOURCES_FIX),
         ('{APT_INSTALL}', build_apt_install(apt_packages)),
+        ('{PIP_INSTALL}', PIP_INSTALL),
         ('{ADD_BUILD_WHEEL}', ADD_BUILD_WHEEL),
-        ('{ENTRYPOINT}', 'ENTRYPOINT /usr/bin/dumb-init /usr/local/bin/build-wheel'),
+        ('{ENTRYPOINT}', 'ENTRYPOINT ["/usr/bin/dumb-init", "/usr/local/bin/build-wheel"]'),
     }
     for key, replacement in replacements:
         template = template.replace(key, replacement)
@@ -82,7 +146,7 @@ def build_docker(dist):
     try:
         with (tempdir / 'Dockerfile').open('w') as f:
             f.write(template)
-        shutil.copyfile('build-wheel', str(tempdir / 'build-wheel'))
+        shutil.copyfile('build_wheel.py', str(tempdir / 'build-wheel'))
 
         with chdir(tempdir):
             check_call(('docker', 'build', '--no-cache', '-t', tag, '.'))
@@ -92,5 +156,9 @@ def build_docker(dist):
 
 
 if __name__ == '__main__':
-    for docker in DOCKERS:
-        build_docker(docker)
+    # TODO: better argparsing
+    if len(sys.argv) == 2:
+        build_docker(sys.argv[1])
+    else:
+        for docker in DOCKERS:
+            build_docker(docker)

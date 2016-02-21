@@ -15,12 +15,13 @@ def construct_job(job_name, image, command):
             'type': 'DOCKER',
             'image': image,
             'network': 'BRIDGE',
+            'forcePullImage': True,
         },
         'cpus': 0.5,
         'mem': 512,
         'command': command,
+        'shell': False,
         'schedule': 'R1//PT10M',
-#        'owner': 'ckuehl@ocf.berkeley.edu',
     }
 
 
@@ -36,8 +37,8 @@ def submit_job(job):
 
 
 if __name__ == '__main__':
-    image = 'debian:jessie'
-    command = 'apt-get update && apt-get install -y lsb-release && lsb_release -a'
+    image = 'docker.ocf.berkeley.edu:5000/builder-jessie'
+    command = 'numpy'
 
     job_name = str(uuid.uuid4())
     print(job_name)
