@@ -6,6 +6,9 @@ Python 3.3+.
 
 We can build wheels for multiple versions without this script running that
 interpreter, though.
+
+This script gets copied into Docker images, so it can't import anything else
+from this package. And its dependencies should be minimal.
 """
 import distutils.spawn
 import os

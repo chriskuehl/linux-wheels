@@ -3,8 +3,11 @@
 # not a package, combine this into a chronos module.
 import json
 import uuid
+from argparse import ArgumentParser
 
 import requests
+
+from linux_wheels.build_dockers import DOCKERS
 
 
 CHRONOS = 'http://hozer-70:4400/scheduler/iso8601'
@@ -24,6 +27,11 @@ def construct_job(job_name, image, command):
         'command': command,
         'shell': False,
         'schedule': 'R1//PT10M',
+        'environmentVariables': [{
+            # what a weird way to represent a key/value dict in JSON...
+            'name': 'WHEEL_UPLOAD_URL',
+            'value': 'http://pypi.ocf.berkeley.edu:6789/upload',
+        }],
     }
 
 
@@ -33,20 +41,27 @@ def submit_job(job):
         data=json.dumps(job),
         headers={'Content-Type': 'application/json'},
     )
-    print(resp)
-    print(resp.headers)
-    print(resp.text)
+    assert resp.status_code == 204, resp.status_code
 
 
 def main(argv=None):
-    image = 'docker.ocf.berkeley.edu:5000/builder-jessie'
-    command = 'numpy'
+    parser = ArgumentParser(description='asdf')
+    # TODO: validate the specs?
+    parser.add_argument('spec', type=str, nargs='+')
+    args = parser.parse_args(argv)
 
-    # TODO: we can probably use meaningful job names?
-    job_name = str(uuid.uuid4())
-    print(job_name)
-    job = construct_job(job_name, image, command)
-    submit_job(job)
+    for spec in args.spec:
+        print('Submitting jobs for {}...'.format(spec))
+        for dist in DOCKERS:
+            print('  - {}'.format(dist), end='')
+
+            image = 'docker.ocf.berkeley.edu:5000/builder-{}'.format(dist)
+            # TODO: if we're careful, we can probably get rid of the UUID
+            job_name = '{}-{}-{}'.format(spec, dist, uuid.uuid4())
+            job = construct_job(job_name, image, spec)
+            submit_job(job)
+
+            print(' done: {}'.format(job_name))
 
 
 if __name__ == '__main__':
