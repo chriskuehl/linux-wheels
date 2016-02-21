@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# TODO: this is a leftover from when this was just a collection of scripts and
+# not a package, combine this into a chronos module.
 import requests
 
 

@@ -98,6 +98,15 @@ RUN wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py; \
     done
 '''.format(pythons=' '.join(TARGET_PYTHONS))
 
+# TODO: reduce duplication in this and the above PIP_INSTALL
+PYTHON_DEPS_INSTALL = r'''\
+RUN for p in {pythons}; do \
+        if command -v "$p"; then \
+            "$p" -m pip.__main__ install pip-custom-platform; \
+        fi; \
+    done
+'''.format(pythons=' '.join(TARGET_PYTHONS))
+
 ADD_BUILD_WHEEL = '''\
 COPY build-wheel /usr/local/bin/build-wheel
 RUN chmod +x /usr/local/bin/build-wheel
@@ -123,6 +132,8 @@ def chdir(path):
 
 
 def build_docker(dist):
+    # TODO: Once the images are built, we should drop to a non-root user
+    # (slightly more protection against kernel vulnerabilities).
     print('Building docker: {}'.format(dist))
     params = DOCKERS[dist]
     tag = 'docker.ocf.berkeley.edu:5000/builder-{}'.format(dist)
@@ -139,6 +150,7 @@ def build_docker(dist):
         ('{APT_SOURCES_FIX}', APT_SOURCES_FIX),
         ('{APT_INSTALL}', build_apt_install(apt_packages)),
         ('{PIP_INSTALL}', PIP_INSTALL),
+        ('{PYTHON_DEPS_INSTALL}', PYTHON_DEPS_INSTALL),
         ('{ADD_BUILD_WHEEL}', ADD_BUILD_WHEEL),
         ('{ENTRYPOINT}', 'ENTRYPOINT ["/usr/bin/dumb-init", "/usr/local/bin/build-wheel"]'),
     }

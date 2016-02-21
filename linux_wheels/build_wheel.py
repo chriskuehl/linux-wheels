@@ -87,6 +87,8 @@ def main(argv=None):
     else:
         print('No wheels were built, exiting.')
 
+    # TODO: we need to remove our Chronos job manually here
+
 
 if __name__ == '__main__':
     exit(main())

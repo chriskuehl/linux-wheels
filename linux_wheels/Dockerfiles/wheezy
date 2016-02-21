@@ -5,6 +5,7 @@ FROM debian:wheezy
 {PIP_INSTALL}
 {DUMB_INIT_INSTALL}
 {ADD_BUILD_WHEEL}
+{PYTHON_DEPS_INSTALL}
 {ENTRYPOINT}
 
 # vim: ft=docker

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# TODO: this is a leftover from when this was just a collection of scripts and
+# not a package, combine this into a chronos module.
 import json
 import uuid
 
@@ -40,6 +42,7 @@ def main(argv=None):
     image = 'docker.ocf.berkeley.edu:5000/builder-jessie'
     command = 'numpy'
 
+    # TODO: we can probably use meaningful job names?
     job_name = str(uuid.uuid4())
     print(job_name)
     job = construct_job(job_name, image, command)
