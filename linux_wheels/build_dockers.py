@@ -6,8 +6,9 @@ import tempfile
 from contextlib import contextmanager
 from pathlib import Path
 from subprocess import check_call
+from pkg_resources import resource_stream
 
-from build_wheel import TARGET_PYTHONS
+from linux_wheels.build_wheel import TARGET_PYTHONS
 
 DOCKERS = {
     # Debian 8 (stable)
@@ -122,11 +123,12 @@ def chdir(path):
 
 
 def build_docker(dist):
+    print('Building docker: {}'.format(dist))
     params = DOCKERS[dist]
     tag = 'docker.ocf.berkeley.edu:5000/builder-{}'.format(dist)
 
-    with open(os.path.join('dockers', dist)) as f:
-        template = f.read()
+    with resource_stream(__package__, os.path.join('Dockerfiles', dist)) as f:
+        template = f.read().decode('utf8')
 
     apt_packages = (
         (BASE_DEBIAN_PACKAGES | params.get('extra_apt_install', set())) -
@@ -147,7 +149,7 @@ def build_docker(dist):
     try:
         with (tempdir / 'Dockerfile').open('w') as f:
             f.write(template)
-        shutil.copyfile('build_wheel.py', str(tempdir / 'build-wheel'))
+        shutil.copyfile(os.path.join(os.path.dirname(__file__), 'build_wheel.py'), str(tempdir / 'build-wheel'))
 
         with chdir(tempdir):
             check_call(('docker', 'build', '--no-cache', '-t', tag, '.'))
@@ -159,7 +161,11 @@ def build_docker(dist):
 def main(argv=None):
     # TODO: better argparsing
     if len(sys.argv) == 2:
-        build_docker(sys.argv[1])
+        # this is disgusting
+        if sys.argv[1] == '--list':
+            print('\n'.join(sorted(DOCKERS.keys())))
+        else:
+            build_docker(sys.argv[1])
     else:
         for docker in DOCKERS:
             build_docker(docker)

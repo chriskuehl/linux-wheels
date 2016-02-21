@@ -11,6 +11,11 @@ $(VENV): setup.py requirements.txt requirements-dev.txt
 test: $(VENV)
 	$(BIN)/pre-commit run --all-files
 
+.PHONY: build-dockers
+build-dockers: $(VENV)
+	# TODO: maybe do the parallelization in build-dockers itself
+	time $(BIN)/lw-build-dockers --list | xargs -n1 -P0 time $(BIN)/lw-build-dockers
+
 .PHONY: clean
 clean:
 	rm -rf $(VENV)

@@ -8,7 +8,7 @@ setup(
     author_email='ckuehl@ocf.berkeley.edu',
     packages=find_packages(),
     package_data={
-        'linux_wheels': ['dockerfiles/*'],
+        'linux_wheels': ['Dockerfiles/*'],
     },
     install_requires={
         'requests',
