@@ -22,7 +22,8 @@ def build_wheel(spec, python='python3.4'):
     os.chdir(tmp)
     check_call((python, '-m', 'pip', 'install', '--download', tmp, '--', spec))
 
-    path, = os.listdir(tmp)
+    # TODO: what is lextab.py???
+    path, = [p for p in os.listdir(tmp) if p != 'lextab.py']
     path = os.path.join(tmp, path)
     basename, ext = path.split('.', 1)  # splitext handles ".tar.gz" weird
 
