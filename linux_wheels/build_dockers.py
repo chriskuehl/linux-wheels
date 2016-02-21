@@ -88,7 +88,9 @@ RUN wget -O /tmp/dumb-init.deb \
 '''
 
 # Try to bludgeon our way into a working pip+wheel install.
-# Currently we only use this on platforms without wheel easily available.
+# Currently we only use this on platforms without wheel easily available or
+# where it's broken.
+# e.g. on Debian stable because of https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=786580
 PIP_INSTALL = r'''\
 RUN wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py; \
     for p in {pythons}; do \

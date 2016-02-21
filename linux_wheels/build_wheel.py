@@ -1,7 +1,7 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2.7
 """Build (or find) wheels for a package.
 
-The shebang says Python 3, but we really want it to work on Python 2.7 and
+The shebang says Python 2.7, but we really want it to work on Python 2.7 and
 Python 3.3+.
 
 We can build wheels for multiple versions without this script running that
