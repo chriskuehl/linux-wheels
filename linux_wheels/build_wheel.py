@@ -59,7 +59,7 @@ def upload_wheels(wheels):
     pass
 
 
-if __name__ == '__main__':
+def main(argv=None):
     spec = sys.argv[1]
     wheels = list(build_wheels(spec))
     if wheels:
@@ -67,3 +67,7 @@ if __name__ == '__main__':
         upload_wheels(wheels)
     else:
         print('No wheels were built, exiting.')
+
+
+if __name__ == '__main__':
+    exit(main())

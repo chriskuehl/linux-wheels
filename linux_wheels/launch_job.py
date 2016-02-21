@@ -36,7 +36,7 @@ def submit_job(job):
     print(resp.text)
 
 
-if __name__ == '__main__':
+def main(argv=None):
     image = 'docker.ocf.berkeley.edu:5000/builder-jessie'
     command = 'numpy'
 
@@ -44,3 +44,7 @@ if __name__ == '__main__':
     print(job_name)
     job = construct_job(job_name, image, command)
     submit_job(job)
+
+
+if __name__ == '__main__':
+    exit(main())

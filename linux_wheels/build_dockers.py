@@ -155,10 +155,15 @@ def build_docker(dist):
         shutil.rmtree(str(tempdir))
 
 
-if __name__ == '__main__':
+
+def main(argv=None):
     # TODO: better argparsing
     if len(sys.argv) == 2:
         build_docker(sys.argv[1])
     else:
         for docker in DOCKERS:
             build_docker(docker)
+
+
+if __name__ == '__main__':
+    exit(main())
